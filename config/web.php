@@ -5,6 +5,7 @@ $params = require(__DIR__ . '/params.php');
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
+    'name' => 'lynicidn demo',
     'bootstrap' => ['log'],
     'components' => [
         'request' => [

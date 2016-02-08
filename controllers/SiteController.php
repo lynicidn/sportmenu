@@ -11,6 +11,12 @@ use app\models\RegistrationForm;
 
 class SiteController extends Controller
 {
+
+    public function actionIndex()
+    {
+        return $this->renderContent('Welcome! Use menu for select action.');
+    }
+
     public function behaviors()
     {
         return [
@@ -75,7 +81,7 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         }
-        return $this->render('login', [
+        return $this->render('registration', [
             'model' => $model,
         ]);
     }
