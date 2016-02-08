@@ -12,8 +12,11 @@ class UserForm extends Model
 {
     public $username;
 
-    private $_user = false;
-
+    public function init()
+    {
+        parent::init();
+        $this->username = $this->getUser()->username;
+    }
 
     /**
      * @return array the validation rules.
@@ -21,59 +24,32 @@ class UserForm extends Model
     public function rules()
     {
         return [
-            // email and password are both required
-            [['email', 'password'], 'required'],
-            ['email', 'email'],
-            //считается плохим тоном, брутфорсо дыра для спаммеров, можно коллекционаривать емейлы, но я бы вхуярил
-//            ['email', 'exist', 'targetClass' => User::className(), 'targetAttribute' => 'email', 'filter' => ['status' => User::STATUS_ACTIVE], 'message' => Yii::t('app', 'Email not active or not exist.')],
-            // rememberMe must be a boolean value
-            ['rememberMe', 'boolean'],
-            // password is validated by validatePassword()
-            ['password', 'validatePassword'],
+            ['username', 'string', 'min' => 3, 'max' => 32],
+            ['username', 'match', 'pattern' => '/^[a-z0-9-_\.]+$/i'],
         ];
     }
 
     /**
-     * Validates the password.
-     * This method serves as the inline validation for password.
-     *
-     * @param string $attribute the attribute currently being validated
-     * @param array $params the additional name-value pairs given in the rule
+     * Update user using the provided username.
+     * @return boolean whether the user is updated in successfully
      */
-    public function validatePassword($attribute, $params)
-    {
-        if (!$this->hasErrors()) {
-            $user = $this->getUser();
-
-            if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, Yii::t('app', 'Incorrect login or password.'));
-            }
-        }
-    }
-
-    /**
-     * Logs in a user using the provided login and password.
-     * @return boolean whether the user is logged in successfully
-     */
-    public function login()
+    public function update()
     {
         if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? Yii::$app->params['user.authKeyExpire'] : 0);
+            $user = $this->getUser();
+            $user->username = $this->username;
+            return $user->save();
         }
         return false;
     }
 
     /**
-     * Finds user by [[email]]
+     * Get current logged user
      *
-     * @return User|null
+     * @return User
      */
     public function getUser()
     {
-        if ($this->_user === false) {
-            $this->_user = User::findByLogin($this->email);
-        }
-
-        return $this->_user;
+        return Yii::$app->user->getIdentity();
     }
 }

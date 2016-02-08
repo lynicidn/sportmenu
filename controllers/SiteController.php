@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\UserForm;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\filters\AccessControl;
@@ -33,6 +34,7 @@ class SiteController extends Controller
                         'roles' => ['@'],
                     ],
                     [
+                        'actions' => ['login', 'create-password', 'register-email'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -71,6 +73,7 @@ class SiteController extends Controller
     {
         $model = new UserForm();
         if ($model->load(Yii::$app->request->post()) && $model->update()) {
+            Yii::$app->session->setFlash('success', 'Personal info changed.');
             return $this->goBack();
         }
         return $this->render('user', [
