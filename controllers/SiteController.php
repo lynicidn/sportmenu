@@ -25,7 +25,7 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'except' => ['error'],
+                'except' => ['error', 'index'],
                 'rules' => [
                     [
                         'actions' => ['logout'],
@@ -98,7 +98,7 @@ class SiteController extends Controller
             throw new BadRequestHttpException($e->getMessage());
         }
 
-        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->create()) {
+        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->createPassword()) {
             Yii::$app->session->setFlash('success', 'Password was created.');
 
             return $this->goHome();

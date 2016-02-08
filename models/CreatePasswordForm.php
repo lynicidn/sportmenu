@@ -1,7 +1,7 @@
 <?php
-namespace frontend\models;
+namespace app\models;
 
-use common\models\User;
+use yii\base\InvalidParamException;
 use yii\base\Model;
 
 /**
@@ -9,7 +9,31 @@ use yii\base\Model;
  */
 class CreatePasswordForm extends Model
 {
-    public $email;
+    public $password;
+
+    /**
+     * @var \app\models\User
+     */
+    private $_user;
+
+    /**
+     * Creates a form model given a token.
+     *
+     * @param string $token
+     * @param array $config name-value pairs that will be used to initialize the object properties
+     * @throws \yii\base\InvalidParamException if token is empty or not valid
+     */
+    public function __construct($token, $config = [])
+    {
+        if (empty($token) || !is_string($token)) {
+            throw new InvalidParamException('Registration token cannot be blank.');
+        }
+        $this->_user = User::findByRegistrationToken($token);
+        if (!$this->_user) {
+            throw new InvalidParamException('Wrong registration token.');
+        }
+        parent::__construct($config);
+    }
 
     /**
      * @inheritdoc
@@ -17,44 +41,23 @@ class CreatePasswordForm extends Model
     public function rules()
     {
         return [
-            ['email', 'filter', 'filter' => 'trim'],
-            ['email', 'required'],
-            ['email', 'email'],
-            ['email', 'exist',
-                'targetClass' => '\common\models\User',
-                'filter' => ['status' => User::STATUS_ACTIVE],
-                'message' => 'There is no user with such email.'
-            ],
+            ['password', 'required'],
+            ['password', 'string', 'min' => 6],
         ];
     }
 
     /**
-     * Sends an email with a link, for resetting the password.
+     * Create password.
      *
-     * @return boolean whether the email was send
+     * @return boolean if password was created.
      */
-    public function sendEmail()
+    public function createPassword()
     {
-        /* @var $user User */
-        $user = User::findOne([
-            'status' => User::STATUS_ACTIVE,
-            'email' => $this->email,
-        ]);
+        $user = $this->_user;
+        $user->setPassword($this->password);
+        $user->removeRegistrationToken();
+        $user->status = $user::STATUS_ACTIVE;
 
-        if ($user) {
-            if (!User::isPasswordResetTokenValid($user->password_reset_token)) {
-                $user->generatePasswordResetToken();
-            }
-
-            if ($user->save()) {
-                return \Yii::$app->mailer->compose(['html' => 'passwordResetToken-html', 'text' => 'passwordResetToken-text'], ['user' => $user])
-                    ->setFrom([\Yii::$app->params['supportEmail'] => \Yii::$app->name . ' robot'])
-                    ->setTo($this->email)
-                    ->setSubject('Password reset for ' . \Yii::$app->name)
-                    ->send();
-            }
-        }
-
-        return false;
+        return $user->save(false);
     }
 }
