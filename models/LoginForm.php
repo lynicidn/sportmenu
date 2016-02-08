@@ -23,7 +23,7 @@ class LoginForm extends Model
     public function rules()
     {
         return [
-            // username and password are both required
+            // email and password are both required
             [['email', 'password'], 'required'],
             ['email', 'email'],
             ['email', 'exist', 'targetClass' => User::className(), 'targetAttribute' => 'email', 'filter' => ['status' => User::STATUS_ACTIVE], 'message' => Yii::t('app', 'Email not active or not exist.')],
@@ -47,13 +47,13 @@ class LoginForm extends Model
             $user = $this->getUser();
 
             if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, Yii::t('app', 'Incorrect username or password.'));
+                $this->addError($attribute, Yii::t('app', 'Incorrect login or password.'));
             }
         }
     }
 
     /**
-     * Logs in a user using the provided username and password.
+     * Logs in a user using the provided login and password.
      * @return boolean whether the user is logged in successfully
      */
     public function login()
@@ -65,7 +65,7 @@ class LoginForm extends Model
     }
 
     /**
-     * Finds user by [[username]]
+     * Finds user by [[email]]
      *
      * @return User|null
      */
