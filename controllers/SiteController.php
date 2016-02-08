@@ -28,7 +28,7 @@ class SiteController extends Controller
                 'except' => ['error', 'index'],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['logout', 'user'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -63,6 +63,17 @@ class SiteController extends Controller
             return $this->goBack();
         }
         return $this->render('login', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionUser()
+    {
+        $model = new UserForm();
+        if ($model->load(Yii::$app->request->post()) && $model->update()) {
+            return $this->goBack();
+        }
+        return $this->render('user', [
             'model' => $model,
         ]);
     }

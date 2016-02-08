@@ -12,7 +12,7 @@ class RegisterEmailForm extends Model
 {
     public $email;
 
-    private $_user;
+    private $_user = false;
 
     /**
      * @return array the validation rules.
@@ -35,12 +35,12 @@ class RegisterEmailForm extends Model
         if (!$this->validate()) {
             return false;
         }
-        $user = new User();
+        $this->_user = $user = new User();
         $user->email = $this->email;
         $user->generateAuthKey();
         $user->generateRegistrationToken();
 
-        return $user->save() ? $this->_user = $user : false;
+        return $user->save();
     }
 
     /**
@@ -50,7 +50,7 @@ class RegisterEmailForm extends Model
      */
     public function sendEmail()
     {
-        return $this->_user && Yii::$app->mailer->compose(['html' => 'registerEmailToken-html', 'text' => 'registerEmailToken-text'], ['user' => $this->_user])
+        return Yii::$app->mailer->compose(['html' => 'registerEmailToken-html', 'text' => 'registerEmailToken-text'], ['user' => $this->_user])
             ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
             ->setTo($this->email)
             ->setSubject('Registration on ' . Yii::$app->name)

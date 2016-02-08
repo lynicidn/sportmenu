@@ -51,7 +51,7 @@ class Alert extends \yii\bootstrap\Widget
     {
         parent::init();
 
-        $session = \Yii::$app->session;
+        $session = Yii::$app->session;
         $flashes = $session->getAllFlashes();
         $appendCss = isset($this->options['class']) ? ' ' . $this->options['class'] : '';
 

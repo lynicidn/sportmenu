@@ -14,7 +14,7 @@ class CreatePasswordForm extends Model
     /**
      * @var \app\models\User
      */
-    private $_user;
+    private $_user = false;
 
     /**
      * Creates a form model given a token.
