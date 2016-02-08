@@ -26,7 +26,7 @@ class LoginForm extends Model
             // username and password are both required
             [['email', 'password'], 'required'],
             ['email', 'email'],
-            ['email', 'exist', 'targetClass' => User::className(), 'targetAttribute' => 'email', 'filter' => ['status' => User::STATUS_ACTIVE], 'message' => Yii::t('app', 'Email not active.')],
+            ['email', 'exist', 'targetClass' => User::className(), 'targetAttribute' => 'email', 'filter' => ['status' => User::STATUS_ACTIVE], 'message' => Yii::t('app', 'Email not active or not exist.')],
             // rememberMe must be a boolean value
             ['rememberMe', 'boolean'],
             // password is validated by validatePassword()
