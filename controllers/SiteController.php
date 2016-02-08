@@ -3,18 +3,21 @@
 namespace app\controllers;
 
 use Yii;
+use yii\base\InvalidParamException;
 use yii\filters\AccessControl;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
+use app\models\RegisterEmailForm;
+use app\models\CreatePasswordForm;
 use app\models\LoginForm;
-use app\models\RegistrationForm;
 
 class SiteController extends Controller
 {
 
     public function actionIndex()
     {
-        return $this->renderContent('Welcome! Use menu for select action.');
+        return $this->renderContent('Welcome! Use menu for select action. (here can be your advert)');
     }
 
     public function behaviors()
@@ -22,12 +25,16 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout'],
+                'except' => ['error'],
                 'rules' => [
                     [
                         'actions' => ['logout'],
                         'allow' => true,
                         'roles' => ['@'],
+                    ],
+                    [
+                        'allow' => true,
+                        'roles' => ['?'],
                     ],
                 ],
             ],
@@ -51,10 +58,6 @@ class SiteController extends Controller
 
     public function actionLogin()
     {
-        if (!\Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
@@ -71,17 +74,37 @@ class SiteController extends Controller
         return $this->goHome();
     }
 
-    public function actionRegistration($token = null)
+    public function actionRegisterEmail()
     {
-        if (!\Yii::$app->user->isGuest) {
+        $model = new RegisterEmailForm();
+        if ($model->load(Yii::$app->request->post()) && $model->register()) {
+            if ($model->sendEmail()) {
+                Yii::$app->session->setFlash('success', 'Thank you for registration. Check your email for continue.');
+            } else {
+                Yii::$app->session->setFlash('error', 'There was an error sending email.');
+            }
+            return $this->goBack();
+        }
+        return $this->render('registerEmail', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionCreatePassword($token)
+    {
+        try {
+            $model = new CreatePasswordForm($token);
+        } catch (InvalidParamException $e) {
+            throw new BadRequestHttpException($e->getMessage());
+        }
+
+        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->create()) {
+            Yii::$app->session->setFlash('success', 'Password was created.');
+
             return $this->goHome();
         }
 
-        $model = new RegistrationForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        }
-        return $this->render('registration', [
+        return $this->render('createPassword', [
             'model' => $model,
         ]);
     }
